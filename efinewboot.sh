@@ -88,7 +88,7 @@ may or may not work with EFI" \
 
 #### If setlist reports TRUE and User say YES to Reboot then EFI is updated ####
 #### and PC/Server reboots.  And everything is final ###########################
-[[ $GO == "TRUE" && ${?} == 10 ]]  && { `$EFI --bootnext $BNR_OUT > /dev/null`; `reb oot`; } || { exit 0; }
+[[ $GO == "TRUE" && ${?} == 10 ]]  && { `$EFI --bootnext $BNR_OUT > /dev/null`; `reboot`; } || { exit 0; }
 }
 
 #### Prepares the Display for Yad ##############################################
