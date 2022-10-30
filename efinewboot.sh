@@ -13,6 +13,7 @@
 #   efibootmgr  required 
 #
 #  Changes:
+#	2022.10.30	VERSION=0.9	created README for GitHub 
 #	2022.10.29	VERSION=0.8	updated all YAD outputs 
 #	2022.10.27	VERSION=0.7	create functions setYADlist for simpler YAD handling
 #				and setYADList for faster output

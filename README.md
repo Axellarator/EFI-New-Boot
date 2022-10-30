@@ -39,16 +39,21 @@ You can only select the `Next Boot` buttons.
 
 ## Final Display 
 
-![Help Display](./efi-final.png)
+![Help Display](./efi-final.png "Help Display")
 
 Reboot or Cancel everything. But fiddling with efibootmgr is tricky and a reboot is a safe bet.
 
-
 ## Changes
++ 2022.10.20 VERSION=0.9 created README
++ 2022.10.29 VERSION=0.8 updated all YAD outputs 
++ 2022.10.27 VERSION=0.7 create functions setYADlist for simpler YAD handling and setYADList for faster output
++ 2022.10.18 VERSION=0.6 Changed the array way of handling the informations
++ 2022.10.07 VERSION=0.5 Removed the non-English stuff added more comments
+         Mod Help file. Mod root enforced
+         Mod check for efibootmgr, yad
+         Mod most if [... replaced by [[ ... ]] && {  ... }.
+         Mod variable names for simple explanation.
+         
+## Tags
 
-* v0.2 -> v0.3  date 26.Jul 2020
-    1. change from tool zenity to yad 
-    2. change from ksh to bash
-    3. make single gui no more 2 gui's to handle
-    4. add application icon
-    
+EFI UEFI EFIBOOTMGR LINUX UBUNTU MINT DEBIAN YAD 
