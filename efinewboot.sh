@@ -63,6 +63,10 @@ exit 1
 
 #### User decides to boot or not ###############################################
 final_decision() {
+ 
+	read GO; read NR; addtxt=""
+	[[ $BL -eq 3 ]]  && { addtxt="BootNext: $NR"; }	
+
 	yad --image "dialog-question" \
         --title "Reboot or not to reboot, that is the question" \
         --on-top --center --width=640 --height=480 --button=REBOOT:10 --button=CANCEL:0 \
@@ -76,15 +80,53 @@ a REBOOT is now required.
 Or restart this program later to reboot then.
 
 A reboot on your own or a regular shutdown 
-may or may not work" \
+may or may not work with EFI" \
 		--column="Current EFI Boot Information" \
-		"`$EFI` "	
+"$addtxt 
+`$EFI`
+"
 
-[[ ${?} == 10 ]] && { echo  'R E B O O T'; } || { exit; }
+#### If setlist reports TRUE and User say YES to Reboot then EFI is updated ####
+#### and PC/Server reboots.  And everything is final ###########################
+[[ $GO == "TRUE" && ${?} == 10 ]]  && { `$EFI --bootnext $BNR_OUT > /dev/null`; `reb oot`; } || { exit 0; }
 }
 
+#### Prepares the Display for Yad ##############################################
+
+setYADlist() { CBV="$1" NBV="$2" BL="$3"
+	for (( i = $BL; i < ${#EFI_ARRAY[@]}; i++ )); do
+
+		BNR=${EFI_ARRAY[$i]:4:4} # Boot Number
+		NAM=${EFI_ARRAY[$i]:10:12} # EFI Name
+	
+		[[ $BNR == $CBV ]] && { CBF="TRUE"; } || { CBF="FALSE"; } # Current Boot Flag
+		[[ $BNR == $NBV ]] && { NBF="TRUE"; } || { NBF="FALSE"; } # Next Boot Flag
+
+#### filter contains showall shortcut
+		[[ "${filter[0]}" == "showall" ]] && { echo $NBF; echo $CBF; echo $BNR; echo $NAM; continue; }
+
+#### filter option pulled and filter exists upper lower case check ?? ###########		
+		for actfilter in ${filter[*]}; do 
+			[[ "$NAM" == *"${actfilter}"* ]] && { echo $NBF; echo $CBF; echo $BNR; echo $NAM; }
+		done
+	done 
+} 
+
+#### Read And Set - Prepares the Input from Yad ################################
+#### setYADList is echo $NBF readYADlist is read $NBF_out ######################
+readYADlist() { OBV="$1" 
+
+IFS="|" # Needed for columns out of YAD 
+
+    while read NBF_OUT CBF_OUT BNR_OUT NAM_OUT rest; do
+   		[[ $NBF_OUT == "TRUE" ]] && { echo $NBF_OUT; echo $BNR_OUT; return 10; }  
+   	done
+   	
+return 0 
+} 
+
 #### We want root ##############################################################
-[[ $(id -u) -ne 0 ]] && { help-info; }
+[[ $(id -u) -ne 0 ]] && { echo "We need root"; }
 
 #### let's find yad first#######################################################
 YAD="yad"
@@ -98,53 +140,13 @@ EFI="efibootmgr"
 declare -a filter
 export filter
 
-[[ $# -eq 0 ]] && { filter[0]="showall"; } ## if cmd-line empty ################
+[[ $# -eq 0 ]] && { filter[0]="showall"; } ## if command line is empty #########
 
-#### prepare IFS to avoid breaks by space in efi_array based on efibootmgr #####
+#### prepare IFS to avoid breaks by space in EFI_ARRAY based on efibootmgr #####
 IFS=$'\n'
-efi_array=(`$EFI`)
-export efi_array
+EFI_ARRAY=(`$EFI`)
+export EFI_ARRAY
 
-#### Prepares the Display for Yad ##############################################
-
-setYADlist() { CBV="$1" NBV="$2" BL="$3"
-	for (( i = $BL; i < ${#efi_array[@]}; i++ )); do
-  		string=${efi_array[$i]}
-
-		BNR=${string:4:4} # Boot Number
-		NAM=${string:10:12} # EFI Name
-		
-		[[ $BNR == $CBV ]] && { CBF="TRUE"; } || { CBF="FALSE"; } # Current Boot Flag
-		[[ $BNR == $NBV ]] && { NBF="TRUE"; } || { NBF="FALSE"; } # Next Boot Flag
-
-#### filter contains showall shortcut
-		[[ "${filter[0]}" == "showall" ]] && { echo $NBF; echo $CBF; echo $BNR; echo $NAM; continue; }
-
-#### filter option pulled and filter exists upper lower case ?? ################		
-		for actfilter in ${filter[*]}; do 
-			[[ "$NAM" == *"${actfilter}"* ]] && { echo $NBF; echo $CBF; echo $BNR; echo $NAM; }
-		done
-	done 
-} 
-
-#### Read And Set - Prepares the Input from Yad ################################
-
-readYADlist() { OBV="$1" 
-
-CBV=${OBV:0:4} # Safety first
-
-IFS="|" # Needed for columns out of YAD 
-
-    while read NB SB NR EFINAME rest
-    do
-		[[ $NB == "TRUE" ]] && { [[ $CBV == $NR ]] && { return "0"; } || { break; } }    
-	done
-
-$EFI --bootnext $NR > /dev/null
-
-return "10"
-#### return 0 without change or with changes return 10 #########################
-} 
 
 ################################################################################
 # Here is main - Starting the whole enchilda
@@ -174,14 +176,14 @@ done
 #### - if BootNext exists, BootCurrent shifts 1 position up in array ###########
 #### - BL loop starts then with 4 else 3 ####################################### 
 
-[[ ${efi_array[0]} = *"BootNext:"* ]] \
-&& { NB=${efi_array[0]}; CB=${efi_array[1]};OB=${efi_array[3]}; BL=4; } \
-|| { NB=${efi_array[0]}; CB=${efi_array[0]};OB=${efi_array[2]}; BL=3; }  
+[[ ${EFI_ARRAY[0]} = *"BootNext:"* ]] \
+&& { NBS=${EFI_ARRAY[0]}; CBS=${EFI_ARRAY[1]};OBS=${EFI_ARRAY[3]}; BL=4; } \
+|| { NBS=${EFI_ARRAY[0]}; CBS=${EFI_ARRAY[0]};OBS=${EFI_ARRAY[2]}; BL=3; }  
 
-CBV=${CB:13:4}; OBV=${OB:11:50}; # pick up only the values
+CBV=${CBS:13:4}; OBV=${OBS:11:50}; # pick up only the values
 
 #### NBF New Boot Flag required if user change his mind later
-[[ $BL = 4 ]] && { NBV=${NB:10:4}; NBF="TRUE"; } || { NBV=$CBV; NBF="FALSE"; }
+[[ $BL = 4 ]] && { NBV=${NBS:10:4}; NBF="TRUE"; } || { NBV=$CBV; NBF="FALSE"; }
 
 #### yad output pipes to readAndSet and prepares EFI Array #####################
 #### NBV Next Boot Value - CBV Current Boot Value - BL Boot Loop Start #########
@@ -195,10 +197,7 @@ setYADlist  "${CBV}" "${NBV}" "${BL}" | yad --image "dialog-question" \
 	--column="Current Boot":RD \
 	--column="Boot Number" \
 	--column="EFI Names" \
-	--print-all | readYADlist  "${OBV}" # return is 0 or 10  
-
-[[ $? -eq 10 ]] && final_decision # end of the enchilada  
-
+	--print-all | readYADlist  "${OBV}" | final_decision   # end of the enchilada  
 exit
 ##########################################
 # All Vars
@@ -206,15 +205,15 @@ exit
 # YAD Test if yad exists
 # EFI efibootmgr program
 # filter cmd line input as array 
-# efi_array contains all the efi stuff
-# CB Current Boot string BootCurrent 
+# EFI_ARRAY contains all the efi stuff
+# CBS Current Boot string BootCurrent 
 # CBV Current Boot Value 
 # CBF Current Boot Flag
-# NB Next Boot string BootNext
+# NBS Next Boot string BootNext
 # NBV Next Boot Value
 # NBF Next Boot Flag
 # BL Boot Loop
 # BNR Boot Number
 # NAM EFI Name
-# OB Boot Order string BootOrder
+# OBS Boot Order string BootOrder
 # OBV Boot Order Value
