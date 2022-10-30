@@ -18,7 +18,7 @@ Normally any version and combination of the software above will do the job.
 
 ## Required 
 
-Superuser power as in root. No mere mortal is allowed to play around with efi power.
+Superuser power as in `root`. No mere mortal is allowed to play around with efi power.
 + su -p for a root shell: _# bash  ./efinewboot.sh 
 + sudo bash ./efinewboot.sh 
  
@@ -54,6 +54,11 @@ Reboot or Cancel everything. But fiddling with efibootmgr is tricky and a reboot
          Mod most if [... replaced by [[ ... ]] && {  ... }.
          Mod variable names for simple explanation.
          
+## Missing Things I am working on
++ Boot reorder based on new boot
++ Preventing useless boot if nothing changes
++ Filter upper/lower case check e.g. DebiaN instead debian
+
 ## Tags
 
 EFI UEFI EFIBOOTMGR LINUX UBUNTU MINT DEBIAN YAD 
