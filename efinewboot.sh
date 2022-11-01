@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 
 ################################################################################
-#  Name: chooseEFIBoot.sh
+#  Name: efinewboot.sh
 #  Date: 2022.10.5
 #  Description:
 #   Script for changing the next boot in EFI 
