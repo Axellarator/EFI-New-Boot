@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-################################################################################
+#------------------------------------------------------------------------------#
 #  Name: efinewboot.sh
 #  Date: 2022.10.5
 #  Description:
@@ -23,22 +23,22 @@
 #               Mod check for efibootmgr, yad
 #               Mod most if [... replaced by [[ ... ]] && {  ... }.
 #               Mod variable names for simple explanation.
-################################################################################
+#------------------------------------------------------------------------------#
 # Primary language is English
 # LANG=${LANG:=en_US.UTF-8}
 # Linux REBOOT either reboot or shutdown -r # REBOOT="reboot" # Last Line 
-
+#
 # DEBUG
 # set -o errexit
 # set -o nounset
 # set -o pipefail
 # set -x
 # [[ "${TRACE-0}" == "1" ]] { set -o xtrace; }
-
-#### latest Version for help-info ############################################## 
+#------------------------------------------------------------------------------#
+#### latest Version for help-info 
 VERSION="0.9"
 
-#### Starting after main with help-info start program -h or -f filter sequence #
+#### Starting after main with help-info start program -h or -f filter sequence
 help-info() {
 	yad --image "dialog-question" \
         --title "Some help - Using it is simple" \
@@ -61,7 +61,7 @@ bash $0  [-f filter 1]  [-f filter 2]  [-h]
 exit 1
 }
 
-#### User decides to boot or not ###############################################
+#### User decides to boot or not 
 final_decision() {
  
 	read GO; read NR; addtxt=""
@@ -86,12 +86,12 @@ may or may not work with EFI" \
 `$EFI`
 "
 
-#### If setlist reports TRUE and User say YES to Reboot then EFI is updated ####
-#### and PC/Server reboots.  And everything is final ###########################
+#### If setlist reports TRUE and User say YES to Reboot then EFI is updated and
+#### PC/Server reboots.  And everything is final
 [[ $GO == "TRUE" && ${?} == 10 ]]  && { `$EFI --bootnext $BNR_OUT > /dev/null`; `reboot`; } || { exit 0; }
 }
 
-#### Prepares the Display for Yad ##############################################
+#### Prepares the Display for Yad 
 
 setYADlist() { CBV="$1" NBV="$2" BL="$3"
 	for (( i = $BL; i < ${#EFI_ARRAY[@]}; i++ )); do
@@ -112,8 +112,7 @@ setYADlist() { CBV="$1" NBV="$2" BL="$3"
 	done 
 } 
 
-#### Read And Set - Prepares the Input from Yad ################################
-#### setYADList is echo $NBF readYADlist is read $NBF_out ######################
+#### Read And Set - Prepares the Input from Yad 
 readYADlist() { OBV="$1" 
 
 IFS="|" # Needed for columns out of YAD 
@@ -125,32 +124,28 @@ IFS="|" # Needed for columns out of YAD
 return 0 
 } 
 
-#### We want root ##############################################################
+#### We want root 
 [[ $(id -u) -ne 0 ]] && { echo "We need root"; }
 
-#### let's find yad first#######################################################
+#### let's find yad first
 YAD="yad"
 [[ -z `which $YAD` ]] && { clear; echo "yad is not installed: apt install yad"; exit 1; }
 
-#### let's find efibootmgr, should be in bin or sbin ###########################
+#### let's find efibootmgr, should be in bin or sbin
 EFI="efibootmgr"
 [[ -z `which $EFI` ]] && { EFI="efibootmgr is not installed"; help-info; }
 
-#### prepare cmd-line [Input] filter as indexed array ##########################
+#### prepare cmd-line [Input] filter as indexed array 
 declare -a filter
 export filter
 
-[[ $# -eq 0 ]] && { filter[0]="showall"; } ## if command line is empty #########
+[[ $# -eq 0 ]] && { filter[0]="showall"; } ## if cmd-line is empty
 
-#### prepare IFS to avoid breaks by space in EFI_ARRAY based on efibootmgr #####
+#### prepare IFS to avoid breaks by space in EFI_ARRAY based on efibootmgr
 IFS=$'\n'
 EFI_ARRAY=(`$EFI`)
-export EFI_ARRAY
 
-
-################################################################################
-# Here is main - Starting the whole enchilda
-################################################################################
+#### Here is main - Starting the whole enchilda
 
 : main_course
 
@@ -172,9 +167,9 @@ do
 	esac
 done
 
-#### check BootNext to catch error - NB BootNext CB BootCurrent OB BootOrder ###
-#### - if BootNext exists, BootCurrent shifts 1 position up in array ###########
-#### - BL loop starts then with 4 else 3 ####################################### 
+#### check BootNext to catch user error - if BootNext exists, BootCurrent shifts
+#### one position up in array - Boot Loop BL starts then with 4 else 3 
+#### NB BootNext CB BootCurrent OB BootOrder 
 
 [[ ${EFI_ARRAY[0]} = *"BootNext:"* ]] \
 && { NBS=${EFI_ARRAY[0]}; CBS=${EFI_ARRAY[1]};OBS=${EFI_ARRAY[3]}; BL=4; } \
@@ -185,12 +180,12 @@ CBV=${CBS:13:4}; OBV=${OBS:11:50}; # pick up only the values
 #### NBF New Boot Flag required if user change his mind later
 [[ $BL = 4 ]] && { NBV=${NBS:10:4}; NBF="TRUE"; } || { NBV=$CBV; NBF="FALSE"; }
 
-#### yad output pipes to readAndSet and prepares EFI Array #####################
-#### NBV Next Boot Value - CBV Current Boot Value - BL Boot Loop Start #########
+#### yad output pipes to readAndSet and prepares EFI Array 
+#### NBV Next Boot Value - CBV Current Boot Value
 
 setYADlist  "${CBV}" "${NBV}" "${BL}" | yad --image "dialog-question" \
 	--title "Next and Current Boot"  \
-	--on-top --center --width=640 --height=480 --button=OK:0 \
+	--on-top --center --width=640 --height=480 --button="gtk-ok:0" \
 	--list \
 	--columns=4 \
 	--column="Next Boot":RD \
@@ -200,7 +195,7 @@ setYADlist  "${CBV}" "${NBV}" "${BL}" | yad --image "dialog-question" \
 	--print-all | readYADlist  "${OBV}" | final_decision   # end of the enchilada  
 exit
 ##########################################
-# All Vars
+# Most Vars
 # VERSION
 # YAD Test if yad exists
 # EFI efibootmgr program
