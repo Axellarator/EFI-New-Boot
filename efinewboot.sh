@@ -35,7 +35,9 @@
 # set -x
 # [[ "${TRACE-0}" == "1" ]] { set -o xtrace; }
 #------------------------------------------------------------------------------#
-#### latest Version for help-info 
+
+# latest Version for help-info ------------------------------------------------#
+ 
 VERSION="0.9"
 
 #### Starting after main with help-info start program -h or -f filter sequence
